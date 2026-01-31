@@ -64,27 +64,43 @@ export LC_ALL=en_US.UTF-8
 
 if [ ! -f ~/.openclaw_installed ]; then
     clear
+    # Ensure local networking is correct for the banner
+    LOC_IP=$(hostname -I | awk '{print $1}')
+    
     echo -e "\033[1;32m==================================================\033[0m"
     echo -e "\033[1;32m   🦞 OpenClaw AI Appliance Installed! 🦞\033[0m"
     echo -e "\033[1;32m==================================================\033[0m"
     echo ""
-    echo -e "\033[1;33m⚠️  CRITICAL STEP FOR REMOTE ACCESS:\033[0m"
-    echo "1. Close this Proxmox Console tab now."
-    echo "2. Re-open Console using the \033[1;36mxterm.js\033[0m option."
-    echo "3. Run: \033[1;36msudo tailscale up\033[0m"
-    echo "4. Copy the link by highlighting it."
-    echo ""
     
+    # Remote Access Logic
     if tailscale status &>/dev/null; then
         TS_IP=$(tailscale ip -4 | head -n 1)
-        echo -e "\033[1;32m✅ REMOTE ACCESS: http://$TS_IP:18789\033[0m"
+        TOKEN=$(grep '"token":' ~/.openclaw/openclaw.json | awk -F'"' '{print $4}' 2>/dev/null || echo "PENDING")
+        echo -e "\033[1;32m✅ REMOTE ACCESS DETECTED\033[0m"
+        echo -e "🔗 URL:   \033[1;36mhttp://$TS_IP:18789/?token=$TOKEN\033[0m"
+        echo ""
+    else
+        echo -e "\033[1;33m⚠️  REMOTE ACCESS (Tailscale) NOT CONNECTED\033[0m"
+        echo "1. Run: \033[1;36msudo tailscale up\033[0m"
+        echo "2. Log in via the link provided by Tailscale."
+        echo "3. Re-log into this console to see your remote Dashboard URL."
+        echo ""
     fi
     
-    LOC_IP=$(hostname -I | awk '{print $1}')
-    echo -e "\033[1;32m✅ LOCAL ACCESS:  http://$LOC_IP:18789\033[0m"
+    echo -e "\033[1;32m✅ LOCAL ACCESS\033[0m"
+    echo -e "🔗 URL:   \033[1;36mhttp://$LOC_IP:18789\033[0m"
     echo ""
+    
+    # Fetch the cheatsheet from GitHub for the user
+    echo -e "\033[1;32m📜 OPENCLAW CHEATSHEET\033[0m"
+    curl -sSL https://raw.githubusercontent.com/dazeb/proxmox-openclaw-installer/main/cheatsheet.txt
+    
     echo -e "\033[1;32m==================================================\033[0m"
-    touch ~/.openclaw_installed
+    
+    # Mark as installed ONLY if tailscale is up, so they see the link on next login if they just did 'tailscale up'
+    if tailscale status &>/dev/null; then
+        touch ~/.openclaw_installed
+    fi
 fi
 EOF
 

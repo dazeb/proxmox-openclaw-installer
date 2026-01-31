@@ -1,0 +1,24 @@
+# 🦞 OpenClaw Cheat Sheet
+
+### 🚀 Management
+- `openclaw status`          - Check system & gateway health
+- `openclaw daemon logs`    - View live background logs
+- `openclaw daemon restart` - Restart the gateway & agents
+- `openclaw doctor`         - Run auto-repair on dependencies
+
+### 🤖 Interaction
+- `openclaw tui`            - Open the Terminal User Interface
+- `openclaw onboard`        - Re-run the first-time setup wizard
+- `openclaw chat`           - Start a quick CLI chat session
+
+### 🔧 Configuration
+- `openclaw configure`      - Interactive configuration menu
+- `openclaw hooks list`     - See active automation hooks
+- `openclaw skills list`    - View available agent tools
+
+### 🌍 Networking
+- `sudo tailscale status`   - Check remote access status
+- `sudo tailscale ip -4`    - Get your Tailscale IP address
+
+---
+*Documentation: https://docs.openclaw.ai*
