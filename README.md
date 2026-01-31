@@ -1,5 +1,13 @@
 # Proxmox OpenClaw Installer 🦞
 
+> [!CAUTION]
+> **UNDER CONSTRUCTION:** This project is currently in early development. While functional, we are actively refining the installation flow and hardening the appliance configuration.
+
+### Current Development Focus:
+- **Enhanced Post-Install Wizard:** Automating the initial Tailscale login and first-run setup directly from the Proxmox console.
+- **Robust Error Handling:** Improving pre-flight checks for Proxmox storage and network configurations.
+- **Appliance Hardening:** Implementing security best practices for the internal Docker network and Node.js environment.
+
 An automated installer for deploying a fully-configured **OpenClaw AI Appliance** on Proxmox VE. This script handles everything from VM creation to secure remote access setup, giving you a private AI instance in minutes.
 
 ## Overview
