@@ -166,7 +166,7 @@ EOF
 
 # --- 7. VM Creation ---
 echo ">>> [3/6] Creating Virtual Machine (ID: $VMID)..."
-qm create $VMID --name "$VMNAME" --memory 4096 --cores 2 --net0 virtio,bridge=vmbr0
+qm create $VMID --name "$VMNAME" --memory 4096 --cores 4 --net0 virtio,bridge=vmbr0
 qm importdisk $VMID "$ISO_PATH/$IMAGE_NAME" $STORAGE
 qm set $VMID --scsihw virtio-scsi-pci --scsi0 $STORAGE:vm-$VMID-disk-0
 qm set $VMID --boot c --bootdisk scsi0
