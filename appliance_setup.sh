@@ -58,7 +58,7 @@ su - openclaw -c "npm config set prefix '/home/openclaw/.npm-global'"
 # Install pnpm and openclaw
 su - openclaw -c "npm install -g pnpm openclaw@latest"
 # Configure OpenClaw to listen on all interfaces for the appliance
-su - openclaw -c "/home/openclaw/.npm-global/bin/openclaw configure --section gateway --setting bind --value 0.0.0.0"
+su - openclaw -c "export OPENCLAW_GATEWAY_BIND=0.0.0.0 && /home/openclaw/.npm-global/bin/openclaw configure --section gateway bind 0.0.0.0 || true"
 # Build UI assets to avoid the "Missing Control UI assets" error
 su - openclaw -c "/home/openclaw/.npm-global/bin/openclaw ui:build"
 # Start and Repair with explicit bind for the appliance
