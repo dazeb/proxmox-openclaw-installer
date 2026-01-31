@@ -9,6 +9,12 @@ echo ">>> [1/7] Configuring Locales & Console..."
 locale-gen en_US.UTF-8
 update-locale LANG=en_US.UTF-8
 
+# Make the OpenClaw path global immediately
+echo 'export PATH=$PATH:/home/openclaw/.npm-global/bin' > /etc/profile.d/openclaw.sh
+echo 'export LANG=en_US.UTF-8' >> /etc/profile.d/openclaw.sh
+echo 'export LC_ALL=en_US.UTF-8' >> /etc/profile.d/openclaw.sh
+chmod +x /etc/profile.d/openclaw.sh
+
 # Enable Serial Console for Proxmox xterm.js
 sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="[^"]*/& console=tty0 console=ttyS0,115200/' /etc/default/grub
 grep -q "GRUB_TERMINAL" /etc/default/grub || echo 'GRUB_TERMINAL="console serial"' >> /etc/default/grub
@@ -64,6 +70,15 @@ export LC_ALL=en_US.UTF-8
 
 if [ ! -f ~/.openclaw_installed ]; then
     clear
+    
+    # Check if the installation is still running in the background
+    if [ ! -f /tmp/openclaw_setup_complete ]; then
+        echo -e "\033[1;33m⚠️  BACKGROUND SETUP IN PROGRESS...\033[0m"
+        echo "Please wait 2-3 minutes for OpenClaw to finish installing."
+        echo "To watch progress: tail -f /var/log/cloud-init-output.log"
+        echo ""
+    fi
+
     # Ensure local networking is correct for the banner
     LOC_IP=$(hostname -I | awk '{print $1}')
     
@@ -105,5 +120,6 @@ fi
 EOF
 
 # Refresh the getty to show the login prompt immediately
+touch /tmp/openclaw_setup_complete
 (sleep 5 && systemctl restart serial-getty@ttyS0) &
 echo ">>> INSTALLATION COMPLETE"
