@@ -9,6 +9,12 @@ echo ">>> [1/7] Configuring Locales & Console..."
 locale-gen en_US.UTF-8
 update-locale LANG=en_US.UTF-8
 
+# Hush needrestart and other interactive prompts
+mkdir -p /etc/needrestart
+echo '$nrconf{restart} = "a";' > /etc/needrestart/needrestart.conf
+echo '$nrconf{kernelhints} = 0;' >> /etc/needrestart/needrestart.conf
+echo '$nrconf{notify} = 0;' >> /etc/needrestart/needrestart.conf
+
 # Make the OpenClaw path global immediately
 echo 'export PATH=$PATH:/home/openclaw/.npm-global/bin' > /etc/profile.d/openclaw.sh
 echo 'export LANG=en_US.UTF-8' >> /etc/profile.d/openclaw.sh
@@ -67,6 +73,12 @@ cat <<'EOF' >> /home/openclaw/.bashrc
 export PATH=$PATH:/home/openclaw/.npm-global/bin
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
+
+# Aggressively clear any MOTD or restart prompts
+if [[ $- == *i* ]]; then
+    sleep 0.2
+    clear
+fi
 
 if [ ! -f ~/.openclaw_installed ]; then
     clear
