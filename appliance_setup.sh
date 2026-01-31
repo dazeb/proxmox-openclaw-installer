@@ -67,6 +67,7 @@ su - openclaw -c "/home/openclaw/.npm-global/bin/openclaw doctor --repair --yes"
 
 echo ">>> [7/7] Finalizing System..."
 loginctl enable-linger openclaw
+chown openclaw:openclaw /home/openclaw/.bashrc
 
 # Setup the welcome banner in .bashrc
 cat <<'EOF' >> /home/openclaw/.bashrc
@@ -120,7 +121,7 @@ if [ ! -f ~/.openclaw_installed ]; then
     
     # Fetch the cheatsheet from GitHub for the user
     echo -e "\033[1;32m📜 OPENCLAW CHEATSHEET\033[0m"
-    curl -sSL https://raw.githubusercontent.com/dazeb/proxmox-openclaw-installer/main/cheatsheet.txt
+    curl -sSL https://raw.githubusercontent.com/dazeb/proxmox-openclaw-installer/master/cheatsheet.txt
     
     echo -e "\033[1;32m==================================================\033[0m"
     
