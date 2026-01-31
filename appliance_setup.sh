@@ -61,9 +61,15 @@ su - openclaw -c "npm install -g pnpm openclaw@latest"
 su - openclaw -c "export OPENCLAW_GATEWAY_BIND=0.0.0.0 && /home/openclaw/.npm-global/bin/openclaw configure --section gateway bind 0.0.0.0 || true"
 # Build UI assets to avoid the "Missing Control UI assets" error
 su - openclaw -c "/home/openclaw/.npm-global/bin/openclaw ui:build"
-# Start and Repair with explicit bind for the appliance
-su - openclaw -c "export OPENCLAW_GATEWAY_BIND=0.0.0.0 && /home/openclaw/.npm-global/bin/openclaw daemon start"
+# Start and Repair
+su - openclaw -c "/home/openclaw/.npm-global/bin/openclaw daemon start"
+# Force 0.0.0.0 bind via systemd override (most robust method)
+su - openclaw -c "mkdir -p ~/.config/systemd/user/openclaw-gateway.service.d/"
+su - openclaw -c "echo -e '[Service]\nEnvironment=OPENCLAW_GATEWAY_BIND=0.0.0.0' > ~/.config/systemd/user/openclaw-gateway.service.d/override.conf"
+su - openclaw -c "systemctl --user daemon-reload"
+su - openclaw -c "/home/openclaw/.npm-global/bin/openclaw daemon restart"
 su - openclaw -c "/home/openclaw/.npm-global/bin/openclaw doctor --repair --yes"
+
 
 echo ">>> [7/7] Finalizing System..."
 loginctl enable-linger openclaw
@@ -74,6 +80,7 @@ cat <<'EOF' >> /home/openclaw/.bashrc
 export PATH=$PATH:/home/openclaw/.npm-global/bin
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
+export OPENCLAW_GATEWAY_BIND=0.0.0.0
 
 # Aggressively clear any MOTD or restart prompts
 if [[ $- == *i* ]]; then
