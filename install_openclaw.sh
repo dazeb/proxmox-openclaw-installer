@@ -186,6 +186,8 @@ runcmd:
   - grep -q "GRUB_TERMINAL" /etc/default/grub || echo 'GRUB_TERMINAL="console serial"' >> /etc/default/grub
   - grep -q "GRUB_SERIAL_COMMAND" /etc/default/grub || echo 'GRUB_SERIAL_COMMAND="serial --speed=115200 --unit=0 --word=8 --parity=no --stop=1"' >> /etc/default/grub
   - update-grub
+  - locale-gen en_US.UTF-8
+  - update-locale LANG=en_US.UTF-8
 
   # --- 2. System Services (Agent First) ---
   - systemctl enable qemu-guest-agent
@@ -240,46 +242,42 @@ cat <<EOF >> "$SNIPPET_FILE"
   # --- 9. Final Instructions ---
   - |
     cat <<'BASHRC' >> /home/openclaw/.bashrc
-    export PATH=\$PATH:/home/openclaw/.npm-global/bin
+    export PATH=$PATH:/home/openclaw/.npm-global/bin
+    export LANG=en_US.UTF-8
+    export LC_ALL=en_US.UTF-8
     
     if [ ! -f ~/.openclaw_installed ]; then
         clear
-        echo -e "\e[1;32m==================================================\e[0m"
-        echo -e "\e[1;32m   🦞 OpenClaw AI Appliance Installed! 🦞\e[0m"
-        echo -e "\e[1;32m==================================================\e[0m"
+        echo -e "\033[1;32m==================================================\033[0m"
+        echo -e "\033[1;32m   🦞 OpenClaw AI Appliance Installed! 🦞\033[0m"
+        echo -e "\033[1;32m==================================================\033[0m"
         echo ""
-        echo -e "\e[1;33m⚠️  CRITICAL STEP FOR REMOTE ACCESS:\e[0m"
+        echo -e "\033[1;33m⚠️  CRITICAL STEP FOR REMOTE ACCESS:\033[0m"
         echo "1. Close this Proxmox Console tab now."
-        echo "2. Re-open Console using the \e[1;36mxterm.js\e[0m option."
-        echo "3. Run: \e[1;36msudo tailscale up\e[0m"
+        echo "2. Re-open Console using the \033[1;36mxterm.js\033[0m option."
+        echo "3. Run: \033[1;36msudo tailscale up\033[0m"
         echo "4. Copy the link by highlighting it."
         echo ""
         
         # Check Tailscale
         if tailscale status &>/dev/null; then
             TS_IP=\$(tailscale ip -4 | head -n 1)
-            echo -e "\e[1;32m✅ REMOTE ACCESS: http://\$TS_IP:18789\e[0m"
+            echo -e "\033[1;32m✅ REMOTE ACCESS: http://\$TS_IP:18789\033[0m"
         fi
         
         LOC_IP=\$(hostname -I | awk '{print \$1}')
-        echo -e "\e[1;32m✅ LOCAL ACCESS:  http://\$LOC_IP:18789\e[0m"
+        echo -e "\033[1;32m✅ LOCAL ACCESS:  http://\$LOC_IP:18789\033[0m"
         echo ""
-        echo -e "\e[1;32m==================================================\e[0m"
+        echo -e "\033[1;32m==================================================\033[0m"
         touch ~/.openclaw_installed
     fi
     BASHRC
 
   - |
-    # Send a broadcast message to all logged in users (and console)
-    wall -n "
-    🦞 OPENCLAW INSTALLATION COMPLETE!
-    
-    ⚠️ ACTION REQUIRED:
-    1. CLOSE this console window.
-    2. OPEN Console again using 'xterm.js' mode.
-    3. Login and run 'sudo tailscale up' to connect.
-    "
+    # Force a clean login prompt on the serial console after cloud-init finishes
+    (sleep 5 && systemctl restart serial-getty@ttyS0) &
 EOF
+
 
 # --- 7. VM Creation ---
 echo ">>> [3/6] Creating Virtual Machine (ID: $VMID)..."
