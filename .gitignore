@@ -1,0 +1,13 @@
+# Secrets and sensitive data
+.env
+*.key
+*.pem
+credentials.json
+askpass.sh
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
