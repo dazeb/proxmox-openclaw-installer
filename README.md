@@ -34,7 +34,7 @@ The `install_openclaw.sh` script automates the deployment of a specialized Ubunt
 Run the following command on your Proxmox host's shell:
 
 ```bash
-bash -c "$(wget -qLO - https://raw.githubusercontent.com/dazeb/proxmox-openclaw-installer/main/install_openclaw.sh)"
+bash -c "$(wget -qLO - https://raw.githubusercontent.com/dazeb/proxmox-openclaw-installer/master/install_openclaw.sh)"
 ```
 
 ### Steps:
