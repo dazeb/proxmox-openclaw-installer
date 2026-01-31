@@ -6,6 +6,7 @@ set -e
 export DEBIAN_FRONTEND=noninteractive
 
 echo ">>> [1/7] Configuring Locales & Console..."
+apt-get update -qq && apt-get install -y unzip build-essential -qq
 locale-gen en_US.UTF-8
 update-locale LANG=en_US.UTF-8
 

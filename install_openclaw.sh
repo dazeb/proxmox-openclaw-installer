@@ -151,6 +151,8 @@ packages:
   - qemu-guest-agent
   - lsb-release
   - locales
+  - unzip
+  - build-essential
 
 write_files:
   - path: /etc/needrestart/needrestart.conf
