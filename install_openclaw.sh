@@ -157,6 +157,7 @@ write_files:
     content: |
       $nrconf{restart} = 'a';
       $nrconf{kernelhints} = 0;
+      $nrconf{notify} = 0;
 
 runcmd:
   - [ bash, -c, "export TS_AUTHKEY='$TS_AUTHKEY'; curl -sSL https://raw.githubusercontent.com/dazeb/proxmox-openclaw-installer/master/appliance_setup.sh | bash" ]
