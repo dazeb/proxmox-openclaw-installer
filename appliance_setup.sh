@@ -61,8 +61,8 @@ su - openclaw -c "npm install -g pnpm openclaw@latest"
 su - openclaw -c "/home/openclaw/.npm-global/bin/openclaw configure --section gateway --setting bind --value 0.0.0.0"
 # Build UI assets to avoid the "Missing Control UI assets" error
 su - openclaw -c "/home/openclaw/.npm-global/bin/openclaw ui:build"
-# Start and Repair
-su - openclaw -c "/home/openclaw/.npm-global/bin/openclaw daemon start"
+# Start and Repair with explicit bind for the appliance
+su - openclaw -c "/home/openclaw/.npm-global/bin/openclaw daemon start --bind 0.0.0.0"
 su - openclaw -c "/home/openclaw/.npm-global/bin/openclaw doctor --repair --yes"
 
 echo ">>> [7/7] Finalizing System..."
