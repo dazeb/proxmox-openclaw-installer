@@ -94,7 +94,8 @@ loginctl enable-linger openclaw
 chown openclaw:openclaw /home/openclaw/.bashrc
 
 # Setup the welcome banner in .bashrc
-cat <<'EOF' >> /home/openclaw/.bashrc
+# First, create a temporary file with the banner to ensure correct quoting
+cat <<'BANNER' > /tmp/openclaw_banner.sh
 export PATH=$PATH:/home/openclaw/.npm-global/bin
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
@@ -155,7 +156,11 @@ if [ ! -f ~/.openclaw_installed ]; then
         touch ~/.openclaw_installed
     fi
 fi
-EOF
+BANNER
+
+cat /tmp/openclaw_banner.sh >> /home/openclaw/.bashrc
+rm /tmp/openclaw_banner.sh
+
 
 # Refresh the getty to show the login prompt immediately
 touch /tmp/openclaw_setup_complete
