@@ -163,6 +163,8 @@ write_files:
 
 runcmd:
   - [ bash, -c, "export TS_AUTHKEY='$TS_AUTHKEY'; curl -sSL https://raw.githubusercontent.com/dazeb/proxmox-openclaw-installer/master/appliance_setup.sh | bash" ]
+  - su - openclaw -c 'node -e "const fs=require(\"fs\"); const path=\"/home/openclaw/.openclaw/openclaw.json\"; if (fs.existsSync(path)) { const c=JSON.parse(fs.readFileSync(path, \"utf8\")); if (c.hooks && c.hooks.enabled && !c.hooks.token) { c.hooks.token = require(\"crypto\").randomBytes(24).toString(\"hex\"); fs.writeFileSync(path, JSON.stringify(c, null, 2)); } }"'
+  - su - openclaw -c "/home/openclaw/.npm-global/bin/openclaw daemon restart"
 EOF
 
 
@@ -180,7 +182,8 @@ qm resize $VMID scsi0 +20G
 echo ">>> [4/6] Applying Hardware Optimizations..."
 qm set $VMID --cpu host 
 qm set $VMID --agent enabled=1 
-qm set $VMID --vga serial0 
+qm set $VMID --vga std
+qm set $VMID --serial0 socket
 qm set $VMID --cicustom "user=$SNIPPET_STORAGE:snippets/openclaw-v$VMID.yaml"
 qm set $VMID --ipconfig0 ip=dhcp
 qm set $VMID --ciuser openclaw --cipassword "changeme"
