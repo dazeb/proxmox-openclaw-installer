@@ -32,47 +32,64 @@ echo ">>> [2/7] Starting Guest Services..."
 systemctl enable qemu-guest-agent
 systemctl start qemu-guest-agent
 
-echo ">>> [3/7] Installing Docker..."
+if [ "$INSTALL_TYPE" = "Desktop" ]; then
+    echo ">>> [3/7] Installing Desktop Environment (XFCE)..."
+    apt-get install -y xfce4 xfce4-goodies lightdm \
+        xfce4-terminal mousepad thunar-archive-plugin \
+        firefox chromium-browser \
+        htop neofetch curl git wget \
+        vlc gnome-calculator file-roller \
+        fonts-noto-color-emoji fonts-font-awesome build-essential gcc -qq
+
+    # Configure LightDM Auto-Login
+    mkdir -p /etc/lightdm/lightdm.conf.d/
+    cat <<EOF > /etc/lightdm/lightdm.conf.d/01-openclaw.conf
+[Seat:*]
+autologin-user=openclaw
+autologin-user-timeout=0
+user-session=xfce
+EOF
+else
+    echo ">>> [3/7] Skipping Desktop (CLI Mode)..."
+    apt-get install -y htop neofetch curl git wget build-essential -qq
+fi
+
+echo ">>> [4/7] Installing Docker..."
 curl -fsSL https://get.docker.com | sh
 mkdir -p /home/openclaw/.docker/cli-plugins
 curl -sSL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o /home/openclaw/.docker/cli-plugins/docker-compose
 chmod +x /home/openclaw/.docker/cli-plugins/docker-compose
 chown -R openclaw:openclaw /home/openclaw/.docker
 
-echo ">>> [4/7] Installing Tailscale..."
+echo ">>> [5/7] Installing Tailscale..."
 curl -fsSL https://tailscale.com/install.sh | sh
 if [ -n "$TS_AUTHKEY" ]; then
     echo ">>> Authenticating Tailscale..."
     tailscale up --authkey "$TS_AUTHKEY"
 fi
 
-echo ">>> [5/7] Installing Node 22..."
+echo ">>> [6/7] Installing Node 22 & OpenClaw..."
 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
 echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
 apt-get update
-apt-get install -y nodejs
+apt-get install -y nodejs -qq
 
-echo ">>> [6/7] Installing OpenClaw..."
 mkdir -p /home/openclaw/.npm-global
 chown -R openclaw:openclaw /home/openclaw/.npm-global
 su - openclaw -c "npm config set prefix '/home/openclaw/.npm-global'"
-# Install pnpm and openclaw
 su - openclaw -c "npm install -g pnpm openclaw@latest"
-# Configure OpenClaw to listen on all interfaces for the appliance
-su - openclaw -c "export OPENCLAW_GATEWAY_BIND=0.0.0.0 && /home/openclaw/.npm-global/bin/openclaw configure --section gateway bind 0.0.0.0 || true"
-# Build UI assets to avoid the "Missing Control UI assets" error
+
+# Build UI assets
 su - openclaw -c "/home/openclaw/.npm-global/bin/openclaw ui:build"
-# Start and Repair
+
+echo ">>> [7/7] Finalizing OpenClaw Daemon..."
 su - openclaw -c "/home/openclaw/.npm-global/bin/openclaw daemon start"
-# Force 0.0.0.0 bind via systemd override (most robust method)
 su - openclaw -c "mkdir -p ~/.config/systemd/user/openclaw-gateway.service.d/"
 su - openclaw -c "echo -e '[Service]\nEnvironment=OPENCLAW_GATEWAY_BIND=0.0.0.0' > ~/.config/systemd/user/openclaw-gateway.service.d/override.conf"
 su - openclaw -c "systemctl --user daemon-reload"
 su - openclaw -c "/home/openclaw/.npm-global/bin/openclaw daemon restart"
 su - openclaw -c "/home/openclaw/.npm-global/bin/openclaw doctor --repair --yes"
 
-
-echo ">>> [7/7] Finalizing System..."
 loginctl enable-linger openclaw
 chown openclaw:openclaw /home/openclaw/.bashrc
 
@@ -95,7 +112,7 @@ if [ ! -f ~/.openclaw_installed ]; then
     # Check if the installation is still running in the background
     if [ ! -f /tmp/openclaw_setup_complete ]; then
         echo -e "\033[1;33m⚠️  BACKGROUND SETUP IN PROGRESS...\033[0m"
-        echo "Please wait 2-3 minutes for OpenClaw to finish installing."
+        echo "Please wait 5-10 minutes for OpenClaw to finish installing."
         echo "To watch progress: tail -f /var/log/cloud-init-output.log"
         echo ""
     fi

@@ -30,8 +30,17 @@ if ! command -v whiptail &> /dev/null; then
     apt-get update -qq && apt-get install -y whiptail -qq
 fi
 
-# --- 3. Interactive Configuration ---
+# --- 4. Interactive Configuration ---
 function msg_error() { whiptail --title "Error" --msgbox "$1" 10 60; exit 1; }
+
+# Choose Installation Type (Desktop vs CLI)
+if [ "$TEST_MODE" = "true" ]; then
+    INSTALL_TYPE="CLI"
+else
+    INSTALL_TYPE=$(whiptail --title "OpenClaw Setup" --menu "Choose Installation Type" 15 60 2 \
+    "CLI" "Minimal terminal-only appliance (Fastest)" \
+    "Desktop" "Full XFCE Desktop with browser & GUI tools" 3>&1 1>&2 2>&3) || exit 0
+fi
 
 # Get Next Free VMID
 NEXTID=$(pvesh get /cluster/nextid)
@@ -162,7 +171,7 @@ write_files:
       $nrconf{notify} = 0;
 
 runcmd:
-  - [ bash, -c, "export TS_AUTHKEY='$TS_AUTHKEY'; curl -sSL https://raw.githubusercontent.com/dazeb/proxmox-openclaw-installer/master/appliance_setup.sh | bash" ]
+  - [ bash, -c, "export TS_AUTHKEY='$TS_AUTHKEY'; export INSTALL_TYPE='$INSTALL_TYPE'; curl -sSL https://raw.githubusercontent.com/dazeb/proxmox-openclaw-installer/master/appliance_setup.sh | bash" ]
   - su - openclaw -c 'node -e "const fs=require(\"fs\"); const path=\"/home/openclaw/.openclaw/openclaw.json\"; if (fs.existsSync(path)) { const c=JSON.parse(fs.readFileSync(path, \"utf8\")); if (c.hooks && c.hooks.enabled && !c.hooks.token) { c.hooks.token = require(\"crypto\").randomBytes(24).toString(\"hex\"); fs.writeFileSync(path, JSON.stringify(c, null, 2)); } }"'
   - su - openclaw -c "/home/openclaw/.npm-global/bin/openclaw daemon restart"
 EOF
@@ -182,7 +191,11 @@ qm resize $VMID scsi0 +20G
 echo ">>> [4/6] Applying Hardware Optimizations..."
 qm set $VMID --cpu host 
 qm set $VMID --agent enabled=1 
-qm set $VMID --vga std
+if [ "$INSTALL_TYPE" = "Desktop" ]; then
+    qm set $VMID --vga std
+else
+    qm set $VMID --vga serial0
+fi
 qm set $VMID --serial0 socket
 qm set $VMID --cicustom "user=$SNIPPET_STORAGE:snippets/openclaw-v$VMID.yaml"
 qm set $VMID --ipconfig0 ip=dhcp
